@@ -136,9 +136,7 @@
 
 
   <button onclick="demarrerScanner()">
-
-    📷 SCANNER UN QR CODE
-
+    📷 DÉMARRER LE SCANNER
   </button>
 
 
@@ -165,6 +163,10 @@ const APPS_SCRIPT_URL =
 
 let scanner = null;
 
+let dernierCode = "";
+
+let dernierScan = 0;
+
 
 // ==================================================
 // CHARGER LES PRESTATIONS
@@ -186,6 +188,7 @@ function chargerPrestations() {
     "&t=" +
     Date.now();
 
+
   script.onerror = function() {
 
     afficherMessage(
@@ -194,7 +197,9 @@ function chargerPrestations() {
 
   };
 
+
   document.body.appendChild(script);
+
 }
 
 
@@ -269,6 +274,7 @@ function changerPrestation() {
       "Sélectionne une prestation";
 
     return;
+
   }
 
 
@@ -296,11 +302,12 @@ function demarrerScanner() {
     );
 
     return;
+
   }
 
 
   afficherMessage(
-    "📷 Ouverture de la caméra..."
+    "📷 Scanner actif — tu peux enchaîner les scans"
   );
 
 
@@ -310,6 +317,11 @@ function demarrerScanner() {
       .catch(function() {});
 
   }
+
+
+  dernierCode = "";
+
+  dernierScan = 0;
 
 
   scanner =
@@ -331,23 +343,13 @@ function demarrerScanner() {
       }
     },
 
+
     function(code) {
 
-      scanner.stop()
-
-        .then(function() {
-
-          traiterCode(code);
-
-        })
-
-        .catch(function() {
-
-          traiterCode(code);
-
-        });
+      traiterCode(code);
 
     },
+
 
     function(error) {
 
@@ -356,6 +358,7 @@ function demarrerScanner() {
     }
 
   )
+
 
   .catch(function(error) {
 
@@ -379,6 +382,28 @@ function traiterCode(code) {
     code.trim().toUpperCase();
 
 
+  const maintenant =
+    Date.now();
+
+
+  // Évite de scanner plusieurs fois
+  // le même QR instantanément
+
+  if (
+    code === dernierCode &&
+    maintenant - dernierScan < 1500
+  ) {
+
+    return;
+
+  }
+
+
+  dernierCode = code;
+
+  dernierScan = maintenant;
+
+
   const formatValide =
     /^[A-Z]{3}-[0-9]{3}$/;
 
@@ -392,6 +417,7 @@ function traiterCode(code) {
     );
 
     return;
+
   }
 
 
@@ -419,8 +445,9 @@ function traiterCode(code) {
     afficherMessage(
       "✅ " +
       code +
-      " enregistré — " +
-      action
+      " — " +
+      action +
+      " enregistré"
     );
 
   };
@@ -431,8 +458,9 @@ function traiterCode(code) {
     afficherMessage(
       "✅ " +
       code +
-      " enregistré — " +
-      action
+      " — " +
+      action +
+      " enregistré"
     );
 
   };
