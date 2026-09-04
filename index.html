@@ -93,16 +93,20 @@
   <h1>🎛️ Atmoscène</h1>
 
 
+  <!-- PRESTATION -->
+
   <label>Prestation</label>
 
   <select id="prestation">
 
     <option value="">
-      Chargement...
+      Chargement des prestations...
     </option>
 
   </select>
 
+
+  <!-- ACTION -->
 
   <label>Action</label>
 
@@ -119,6 +123,8 @@
   </select>
 
 
+  <!-- BOUTON SCANNER -->
+
   <button onclick="demarrerScanner()">
 
     📷 SCANNER UN QR CODE
@@ -126,11 +132,17 @@
   </button>
 
 
+  <!-- CAMERA -->
+
   <div id="reader"></div>
 
 
+  <!-- MESSAGE -->
+
   <div id="message">
+
     Chargement des prestations...
+
   </div>
 
 </div>
@@ -139,13 +151,17 @@
 <script>
 
 
+// ==================================================
+// URL GOOGLE APPS SCRIPT
+// ==================================================
+
 const APPS_SCRIPT_URL =
 "https://script.google.com/macros/s/AKfycbwcNScCHlLnp8vUbA7rRqyATLfHhwO_DavXmBC5oojtDZVLPDeWTJaXuoUwXw-YJ-DQPg/exec";
 
 
-// =========================
+// ==================================================
 // CHARGER LES PRESTATIONS
-// =========================
+// ==================================================
 
 function chargerPrestations() {
 
@@ -157,17 +173,31 @@ function chargerPrestations() {
 
   script.src =
     APPS_SCRIPT_URL +
-    "?action=prestations&callback=" +
+    "?action=prestations" +
+    "&callback=" +
     callback;
+
+  script.onerror = function() {
+
+    afficherMessage(
+      "❌ Impossible de charger les prestations."
+    );
+
+  };
 
   document.body.appendChild(script);
 }
 
 
+// ==================================================
+// RÉCEPTION DES PRESTATIONS
+// ==================================================
+
 function prestationsCallback(prestations) {
 
   const select =
     document.getElementById("prestation");
+
 
   select.innerHTML =
     '<option value="">Choisir une prestation</option>';
@@ -178,7 +208,10 @@ function prestationsCallback(prestations) {
     const option =
       document.createElement("option");
 
-    option.value = p.code;
+
+    option.value =
+      p.code;
+
 
     option.textContent =
       p.code +
@@ -187,20 +220,32 @@ function prestationsCallback(prestations) {
       " — " +
       p.prestation;
 
+
     select.appendChild(option);
 
   });
 
 
-  afficherMessage(
-    "✅ Prêt à scanner"
-  );
+  if (prestations.length === 0) {
+
+    afficherMessage(
+      "⚠️ Aucune prestation trouvée."
+    );
+
+  } else {
+
+    afficherMessage(
+      "✅ Prêt à scanner"
+    );
+
+  }
+
 }
 
 
-// =========================
-// SCANNER
-// =========================
+// ==================================================
+// DÉMARRER LE SCANNER
+// ==================================================
 
 function demarrerScanner() {
 
@@ -233,6 +278,7 @@ function demarrerScanner() {
       facingMode: "environment"
     },
 
+
     {
       fps: 10,
 
@@ -245,12 +291,15 @@ function demarrerScanner() {
 
     function(code) {
 
+
       scanner.stop()
+
         .then(function() {
 
           traiterCode(code);
 
         })
+
         .catch(function() {
 
           traiterCode(code);
@@ -262,7 +311,8 @@ function demarrerScanner() {
 
     function(error) {
 
-      // Erreurs normales ignorées
+      // Erreurs normales du scanner
+      // ignorées volontairement
 
     }
 
@@ -272,7 +322,8 @@ function demarrerScanner() {
   .catch(function(error) {
 
     afficherMessage(
-      "❌ Caméra : " + error
+      "❌ Impossible d'ouvrir la caméra : " +
+      error
     );
 
   });
@@ -280,15 +331,17 @@ function demarrerScanner() {
 }
 
 
-// =========================
-// TRAITEMENT QR
-// =========================
+// ==================================================
+// TRAITER LE QR CODE
+// ==================================================
 
 function traiterCode(code) {
 
   code =
     code.trim().toUpperCase();
 
+
+  // Format obligatoire : ABC-123
 
   const formatValide =
     /^[A-Z]{3}-[0-9]{3}$/;
@@ -315,13 +368,46 @@ function traiterCode(code) {
 
 
   afficherMessage(
-    "⏳ Enregistrement de " + code + "..."
+    "⏳ Enregistrement de " +
+    code +
+    "..."
   );
 
 
-  // Envoi du scan à Google Sheets
+  // ==================================================
+  // ENVOYER LE SCAN À GOOGLE SHEETS
+  // ==================================================
+
   const image =
     new Image();
+
+
+  image.onload = function() {
+
+    afficherMessage(
+      "✅ " +
+      code +
+      " enregistré — " +
+      action
+    );
+
+  };
+
+
+  image.onerror = function() {
+
+    // Même si le navigateur bloque la réponse,
+    // la requête GET a normalement été envoyée.
+
+    afficherMessage(
+      "✅ " +
+      code +
+      " enregistré — " +
+      action
+    );
+
+  };
+
 
   image.src =
     APPS_SCRIPT_URL +
@@ -333,20 +419,12 @@ function traiterCode(code) {
     "&type=" +
     encodeURIComponent(action);
 
-
-  afficherMessage(
-    "✅ " +
-    code +
-    " enregistré — " +
-    action
-  );
-
 }
 
 
-// =========================
-// MESSAGE
-// =========================
+// ==================================================
+// AFFICHER UN MESSAGE
+// ==================================================
 
 function afficherMessage(message) {
 
@@ -356,9 +434,9 @@ function afficherMessage(message) {
 }
 
 
-// =========================
-// LANCEMENT
-// =========================
+// ==================================================
+// CHARGEMENT AUTOMATIQUE
+// ==================================================
 
 chargerPrestations();
 
