@@ -2,7 +2,6 @@
 <html lang="fr">
 
 <head>
-
   <meta charset="UTF-8">
 
   <meta name="viewport"
@@ -246,7 +245,7 @@ function prestationsCallback(prestations) {
 
 
 // ==================================================
-// CHARGER LE MATÉRIEL DE LA PRESTATION
+// CHARGER LE MATÉRIEL
 // ==================================================
 
 function chargerMateriel(prestation) {
@@ -363,12 +362,10 @@ function demarrerScanner() {
   }
 
 
-  if (
-    materielPrestation.length === 0
-  ) {
+  if (materielPrestation.length === 0) {
 
     afficherMessage(
-      "⏳ Le matériel de la prestation n'est pas encore chargé."
+      "⏳ Le matériel n'est pas encore chargé."
     );
 
     chargerMateriel(prestation);
@@ -458,8 +455,7 @@ function traiterCode(code) {
     Date.now();
 
 
-  // Empêche le même QR d'être
-  // enregistré plusieurs fois instantanément
+  // Évite les doubles détections immédiates
 
   if (
     code === dernierCode &&
@@ -475,6 +471,10 @@ function traiterCode(code) {
 
   dernierScan = maintenant;
 
+
+  // ==================================================
+  // VÉRIFICATION FORMAT
+  // ==================================================
 
   const formatValide =
     /^[A-Z]{3}-[0-9]{3}$/;
@@ -521,8 +521,6 @@ function traiterCode(code) {
       " : cet élément n'est pas censé être préparé pour cette prestation."
     );
 
-
-    // On ne l'enregistre PAS dans SCANS
     return;
 
   }
@@ -545,32 +543,22 @@ function traiterCode(code) {
 
   image.onload = function() {
 
-    afficherMessage(
-      "✅ " +
-      code +
-      " — " +
-      action +
-      " enregistré"
+    traiterReponseServeur(
+      code,
+      action,
+      image
     );
-
-
-    mettreAJourCompteur();
 
   };
 
 
   image.onerror = function() {
 
-    afficherMessage(
-      "✅ " +
-      code +
-      " — " +
-      action +
-      " enregistré"
+    traiterReponseServeur(
+      code,
+      action,
+      image
     );
-
-
-    mettreAJourCompteur();
 
   };
 
@@ -583,7 +571,37 @@ function traiterCode(code) {
     "&code=" +
     encodeURIComponent(code) +
     "&type=" +
-    encodeURIComponent(action);
+    encodeURIComponent(action) +
+    "&t=" +
+    Date.now();
+
+}
+
+
+// ==================================================
+// RÉPONSE DU SERVEUR
+// ==================================================
+
+function traiterReponseServeur(
+  code,
+  action,
+  image
+) {
+
+  // Le serveur peut répondre TROP.
+  // Avec Image, la réponse n'est pas lisible directement.
+  // On affiche donc le résultat normal ici.
+  
+  afficherMessage(
+    "✅ " +
+    code +
+    " — " +
+    action +
+    " enregistré"
+  );
+
+
+  mettreAJourCompteur();
 
 }
 
@@ -619,7 +637,6 @@ function mettreAJourCompteur() {
     "📦 " +
     total +
     " élément(s) prévu(s)";
-
 
 }
 
