@@ -2,18 +2,14 @@
 <html>
 
 <head>
-
   <meta charset="UTF-8">
-
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   <title>Atmoscène — Scanner</title>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
-
     * {
       box-sizing: border-box;
     }
@@ -78,13 +74,19 @@
       text-align: center;
       font-size: 21px;
       font-weight: bold;
-      word-wrap: break-word;
     }
 
+    #compteur {
+      margin-top: 20px;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+    }
   </style>
-
 </head>
-
 
 <body>
 
@@ -92,71 +94,42 @@
 
   <h1>🎛️ Atmoscène</h1>
 
-
-  <!-- PRESTATION -->
-
   <label>Prestation</label>
 
-  <select id="prestation">
-
-    <option value="">
-      Chargement des prestations...
-    </option>
-
+  <select id="prestation" onchange="changerPrestation()">
+    <option value="">Chargement des prestations...</option>
   </select>
-
-
-  <!-- ACTION -->
 
   <label>Action</label>
 
   <select id="action">
-
-    <option value="CHARGEMENT">
-      📦 CHARGEMENT
-    </option>
-
-    <option value="RETOUR">
-      🔄 RETOUR
-    </option>
-
+    <option value="CHARGEMENT">📦 CHARGEMENT</option>
+    <option value="RETOUR">🔄 RETOUR</option>
   </select>
 
-
-  <!-- BOUTON SCANNER -->
+  <div id="compteur">
+    Sélectionne une prestation
+  </div>
 
   <button onclick="demarrerScanner()">
-
     📷 SCANNER UN QR CODE
-
   </button>
-
-
-  <!-- CAMERA -->
 
   <div id="reader"></div>
 
-
-  <!-- MESSAGE -->
-
   <div id="message">
-
     Chargement des prestations...
-
   </div>
 
 </div>
 
-
 <script>
-
-
-// ==================================================
-// URL GOOGLE APPS SCRIPT
-// ==================================================
 
 const APPS_SCRIPT_URL =
 "https://script.google.com/macros/s/AKfycbwcNScCHlLnp8vUbA7rRqyATLfHhwO_DavXmBC5oojtDZVLPDeWTJaXuoUwXw-YJ-DQPg/exec";
+
+
+let scanner = null;
 
 
 // ==================================================
@@ -165,11 +138,9 @@ const APPS_SCRIPT_URL =
 
 function chargerPrestations() {
 
-  const script =
-    document.createElement("script");
+  const script = document.createElement("script");
 
-  const callback =
-    "prestationsCallback";
+  const callback = "prestationsCallback";
 
   script.src =
     APPS_SCRIPT_URL +
@@ -198,20 +169,15 @@ function prestationsCallback(prestations) {
   const select =
     document.getElementById("prestation");
 
-
   select.innerHTML =
     '<option value="">Choisir une prestation</option>';
-
 
   prestations.forEach(function(p) {
 
     const option =
       document.createElement("option");
 
-
-    option.value =
-      p.code;
-
+    option.value = p.code;
 
     option.textContent =
       p.code +
@@ -220,25 +186,34 @@ function prestationsCallback(prestations) {
       " — " +
       p.prestation;
 
-
     select.appendChild(option);
 
   });
 
+  afficherMessage("✅ Prêt à scanner");
 
-  if (prestations.length === 0) {
+}
 
-    afficherMessage(
-      "⚠️ Aucune prestation trouvée."
-    );
 
-  } else {
+// ==================================================
+// CHANGEMENT DE PRESTATION
+// ==================================================
 
-    afficherMessage(
-      "✅ Prêt à scanner"
-    );
+function changerPrestation() {
 
+  const prestation =
+    document.getElementById("prestation").value;
+
+  if (!prestation) {
+
+    document.getElementById("compteur").textContent =
+      "Sélectionne une prestation";
+
+    return;
   }
+
+  document.getElementById("compteur").textContent =
+    "📦 Prestation : " + prestation;
 
 }
 
@@ -252,7 +227,6 @@ function demarrerScanner() {
   const prestation =
     document.getElementById("prestation").value;
 
-
   if (!prestation) {
 
     afficherMessage(
@@ -262,22 +236,18 @@ function demarrerScanner() {
     return;
   }
 
-
   afficherMessage(
     "📷 Ouverture de la caméra..."
   );
 
-
-  const scanner =
+  scanner =
     new Html5Qrcode("reader");
-
 
   scanner.start(
 
     {
       facingMode: "environment"
     },
-
 
     {
       fps: 10,
@@ -288,36 +258,25 @@ function demarrerScanner() {
       }
     },
 
-
     function(code) {
-
 
       scanner.stop()
 
         .then(function() {
-
           traiterCode(code);
-
         })
 
         .catch(function() {
-
           traiterCode(code);
-
         });
 
     },
 
-
     function(error) {
-
-      // Erreurs normales du scanner
-      // ignorées volontairement
-
+      // erreurs normales ignorées
     }
 
   )
-
 
   .catch(function(error) {
 
@@ -332,7 +291,7 @@ function demarrerScanner() {
 
 
 // ==================================================
-// TRAITER LE QR CODE
+// TRAITER LE QR
 // ==================================================
 
 function traiterCode(code) {
@@ -340,12 +299,8 @@ function traiterCode(code) {
   code =
     code.trim().toUpperCase();
 
-
-  // Format obligatoire : ABC-123
-
   const formatValide =
     /^[A-Z]{3}-[0-9]{3}$/;
-
 
   if (!formatValide.test(code)) {
 
@@ -358,14 +313,11 @@ function traiterCode(code) {
     return;
   }
 
-
   const prestation =
     document.getElementById("prestation").value;
 
-
   const action =
     document.getElementById("action").value;
-
 
   afficherMessage(
     "⏳ Enregistrement de " +
@@ -373,14 +325,8 @@ function traiterCode(code) {
     "..."
   );
 
-
-  // ==================================================
-  // ENVOYER LE SCAN À GOOGLE SHEETS
-  // ==================================================
-
   const image =
     new Image();
-
 
   image.onload = function() {
 
@@ -393,11 +339,7 @@ function traiterCode(code) {
 
   };
 
-
   image.onerror = function() {
-
-    // Même si le navigateur bloque la réponse,
-    // la requête GET a normalement été envoyée.
 
     afficherMessage(
       "✅ " +
@@ -407,7 +349,6 @@ function traiterCode(code) {
     );
 
   };
-
 
   image.src =
     APPS_SCRIPT_URL +
@@ -423,7 +364,7 @@ function traiterCode(code) {
 
 
 // ==================================================
-// AFFICHER UN MESSAGE
+// MESSAGE
 // ==================================================
 
 function afficherMessage(message) {
@@ -435,11 +376,10 @@ function afficherMessage(message) {
 
 
 // ==================================================
-// CHARGEMENT AUTOMATIQUE
+// LANCEMENT
 // ==================================================
 
 chargerPrestations();
-
 
 </script>
 
