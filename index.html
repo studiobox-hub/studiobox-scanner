@@ -1,15 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1">
 
   <title>Atmoscène — Scanner</title>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
+
     * {
       box-sizing: border-box;
     }
@@ -74,6 +78,7 @@
       text-align: center;
       font-size: 21px;
       font-weight: bold;
+      word-wrap: break-word;
     }
 
     #compteur {
@@ -85,8 +90,11 @@
       font-size: 24px;
       font-weight: bold;
     }
+
   </style>
+
 </head>
+
 
 <body>
 
@@ -94,28 +102,48 @@
 
   <h1>🎛️ Atmoscène</h1>
 
+
   <label>Prestation</label>
 
-  <select id="prestation" onchange="changerPrestation()">
-    <option value="">Chargement des prestations...</option>
+  <select id="prestation"
+          onchange="changerPrestation()">
+
+    <option value="">
+      Chargement des prestations...
+    </option>
+
   </select>
+
 
   <label>Action</label>
 
   <select id="action">
-    <option value="CHARGEMENT">📦 CHARGEMENT</option>
-    <option value="RETOUR">🔄 RETOUR</option>
+
+    <option value="CHARGEMENT">
+      📦 CHARGEMENT
+    </option>
+
+    <option value="RETOUR">
+      🔄 RETOUR
+    </option>
+
   </select>
+
 
   <div id="compteur">
     Sélectionne une prestation
   </div>
 
+
   <button onclick="demarrerScanner()">
+
     📷 SCANNER UN QR CODE
+
   </button>
 
+
   <div id="reader"></div>
+
 
   <div id="message">
     Chargement des prestations...
@@ -123,7 +151,13 @@
 
 </div>
 
+
 <script>
+
+
+// ==================================================
+// GOOGLE APPS SCRIPT
+// ==================================================
 
 const APPS_SCRIPT_URL =
 "https://script.google.com/macros/s/AKfycbwcNScCHlLnp8vUbA7rRqyATLfHhwO_DavXmBC5oojtDZVLPDeWTJaXuoUwXw-YJ-DQPg/exec";
@@ -138,15 +172,19 @@ let scanner = null;
 
 function chargerPrestations() {
 
-  const script = document.createElement("script");
+  const callback =
+    "prestationsCallback";
 
-  const callback = "prestationsCallback";
+  const script =
+    document.createElement("script");
 
   script.src =
     APPS_SCRIPT_URL +
     "?action=prestations" +
     "&callback=" +
-    callback;
+    callback +
+    "&t=" +
+    Date.now();
 
   script.onerror = function() {
 
@@ -169,15 +207,20 @@ function prestationsCallback(prestations) {
   const select =
     document.getElementById("prestation");
 
+
   select.innerHTML =
     '<option value="">Choisir une prestation</option>';
+
 
   prestations.forEach(function(p) {
 
     const option =
       document.createElement("option");
 
-    option.value = p.code;
+
+    option.value =
+      p.code;
+
 
     option.textContent =
       p.code +
@@ -186,11 +229,25 @@ function prestationsCallback(prestations) {
       " — " +
       p.prestation;
 
+
     select.appendChild(option);
 
   });
 
-  afficherMessage("✅ Prêt à scanner");
+
+  if (prestations.length > 0) {
+
+    afficherMessage(
+      "✅ Prêt à scanner"
+    );
+
+  } else {
+
+    afficherMessage(
+      "⚠️ Aucune prestation trouvée."
+    );
+
+  }
 
 }
 
@@ -204,15 +261,19 @@ function changerPrestation() {
   const prestation =
     document.getElementById("prestation").value;
 
+
   if (!prestation) {
 
-    document.getElementById("compteur").textContent =
+    document.getElementById("compteur")
+      .textContent =
       "Sélectionne une prestation";
 
     return;
   }
 
-  document.getElementById("compteur").textContent =
+
+  document.getElementById("compteur")
+    .textContent =
     "📦 Prestation : " + prestation;
 
 }
@@ -227,6 +288,7 @@ function demarrerScanner() {
   const prestation =
     document.getElementById("prestation").value;
 
+
   if (!prestation) {
 
     afficherMessage(
@@ -236,12 +298,23 @@ function demarrerScanner() {
     return;
   }
 
+
   afficherMessage(
     "📷 Ouverture de la caméra..."
   );
 
+
+  if (scanner !== null) {
+
+    scanner.clear()
+      .catch(function() {});
+
+  }
+
+
   scanner =
     new Html5Qrcode("reader");
+
 
   scanner.start(
 
@@ -263,17 +336,23 @@ function demarrerScanner() {
       scanner.stop()
 
         .then(function() {
+
           traiterCode(code);
+
         })
 
         .catch(function() {
+
           traiterCode(code);
+
         });
 
     },
 
     function(error) {
+
       // erreurs normales ignorées
+
     }
 
   )
@@ -299,8 +378,10 @@ function traiterCode(code) {
   code =
     code.trim().toUpperCase();
 
+
   const formatValide =
     /^[A-Z]{3}-[0-9]{3}$/;
+
 
   if (!formatValide.test(code)) {
 
@@ -313,11 +394,14 @@ function traiterCode(code) {
     return;
   }
 
+
   const prestation =
     document.getElementById("prestation").value;
 
+
   const action =
     document.getElementById("action").value;
+
 
   afficherMessage(
     "⏳ Enregistrement de " +
@@ -325,8 +409,10 @@ function traiterCode(code) {
     "..."
   );
 
+
   const image =
     new Image();
+
 
   image.onload = function() {
 
@@ -339,6 +425,7 @@ function traiterCode(code) {
 
   };
 
+
   image.onerror = function() {
 
     afficherMessage(
@@ -349,6 +436,7 @@ function traiterCode(code) {
     );
 
   };
+
 
   image.src =
     APPS_SCRIPT_URL +
@@ -380,6 +468,7 @@ function afficherMessage(message) {
 // ==================================================
 
 chargerPrestations();
+
 
 </script>
 
