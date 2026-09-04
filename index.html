@@ -3,16 +3,13 @@
 
 <head>
   <meta charset="UTF-8">
-
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   <title>Atmoscène — Scanner</title>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
-
     * {
       box-sizing: border-box;
     }
@@ -89,11 +86,8 @@
       font-size: 22px;
       font-weight: bold;
     }
-
   </style>
-
 </head>
-
 
 <body>
 
@@ -101,46 +95,28 @@
 
   <h1>🎛️ Atmoscène</h1>
 
-
   <label>Prestation</label>
 
-  <select id="prestation"
-          onchange="changerPrestation()">
-
-    <option value="">
-      Chargement des prestations...
-    </option>
-
+  <select id="prestation" onchange="changerPrestation()">
+    <option value="">Chargement des prestations...</option>
   </select>
-
 
   <label>Action</label>
 
   <select id="action">
-
-    <option value="CHARGEMENT">
-      📦 CHARGEMENT
-    </option>
-
-    <option value="RETOUR">
-      🔄 RETOUR
-    </option>
-
+    <option value="CHARGEMENT">📦 CHARGEMENT</option>
+    <option value="RETOUR">🔄 RETOUR</option>
   </select>
-
 
   <div id="compteur">
     Sélectionne une prestation
   </div>
 
-
   <button onclick="demarrerScanner()">
     📷 DÉMARRER LE SCANNER
   </button>
 
-
   <div id="reader"></div>
-
 
   <div id="message">
     Chargement des prestations...
@@ -148,13 +124,7 @@
 
 </div>
 
-
 <script>
-
-
-// ==================================================
-// GOOGLE APPS SCRIPT
-// ==================================================
 
 const APPS_SCRIPT_URL =
 "https://script.google.com/macros/s/AKfycbwcNScCHlLnp8vUbA7rRqyATLfHhwO_DavXmBC5oojtDZVLPDeWTJaXuoUwXw-YJ-DQPg/exec";
@@ -175,8 +145,7 @@ let materielPrestation = [];
 
 function chargerPrestations() {
 
-  const script =
-    document.createElement("script");
+  const script = document.createElement("script");
 
   script.src =
     APPS_SCRIPT_URL +
@@ -184,7 +153,6 @@ function chargerPrestations() {
     "&callback=prestationsCallback" +
     "&t=" +
     Date.now();
-
 
   script.onerror = function() {
 
@@ -194,9 +162,7 @@ function chargerPrestations() {
 
   };
 
-
   document.body.appendChild(script);
-
 }
 
 
@@ -209,20 +175,15 @@ function prestationsCallback(prestations) {
   const select =
     document.getElementById("prestation");
 
-
   select.innerHTML =
     '<option value="">Choisir une prestation</option>';
-
 
   prestations.forEach(function(p) {
 
     const option =
       document.createElement("option");
 
-
-    option.value =
-      p.code;
-
+    option.value = p.code;
 
     option.textContent =
       p.code +
@@ -231,16 +192,11 @@ function prestationsCallback(prestations) {
       " — " +
       p.prestation;
 
-
     select.appendChild(option);
 
   });
 
-
-  afficherMessage(
-    "✅ Prêt à scanner"
-  );
-
+  afficherMessage("✅ Prêt à scanner");
 }
 
 
@@ -252,10 +208,8 @@ function chargerMateriel(prestation) {
 
   materielPrestation = [];
 
-
   const script =
     document.createElement("script");
-
 
   script.src =
     APPS_SCRIPT_URL +
@@ -266,7 +220,6 @@ function chargerMateriel(prestation) {
     "&t=" +
     Date.now();
 
-
   script.onerror = function() {
 
     afficherMessage(
@@ -275,9 +228,7 @@ function chargerMateriel(prestation) {
 
   };
 
-
   document.body.appendChild(script);
-
 }
 
 
@@ -290,14 +241,11 @@ function materielCallback(materiel) {
   materielPrestation =
     materiel || [];
 
-
   afficherMessage(
     "✅ Prestation chargée — prêt à scanner"
   );
 
-
   mettreAJourCompteur();
-
 }
 
 
@@ -310,34 +258,26 @@ function changerPrestation() {
   const prestation =
     document.getElementById("prestation").value;
 
-
   if (!prestation) {
 
     materielPrestation = [];
-
 
     document.getElementById("compteur")
       .textContent =
       "Sélectionne une prestation";
 
-
     afficherMessage(
       "Choisis une prestation"
     );
 
-
     return;
-
   }
-
 
   document.getElementById("compteur")
     .textContent =
     "⏳ Chargement du matériel...";
 
-
   chargerMateriel(prestation);
-
 }
 
 
@@ -350,7 +290,6 @@ function demarrerScanner() {
   const prestation =
     document.getElementById("prestation").value;
 
-
   if (!prestation) {
 
     afficherMessage(
@@ -358,27 +297,11 @@ function demarrerScanner() {
     );
 
     return;
-
   }
-
-
-  if (materielPrestation.length === 0) {
-
-    afficherMessage(
-      "⏳ Le matériel n'est pas encore chargé."
-    );
-
-    chargerMateriel(prestation);
-
-    return;
-
-  }
-
 
   afficherMessage(
     "📷 Scanner actif — tu peux enchaîner les scans"
   );
-
 
   if (scanner !== null) {
 
@@ -387,15 +310,11 @@ function demarrerScanner() {
 
   }
 
-
   dernierCode = "";
-
   dernierScan = 0;
-
 
   scanner =
     new Html5Qrcode("reader");
-
 
   scanner.start(
 
@@ -412,22 +331,17 @@ function demarrerScanner() {
       }
     },
 
-
     function(code) {
 
       traiterCode(code);
 
     },
 
-
     function(error) {
-
       // erreurs normales ignorées
-
     }
 
   )
-
 
   .catch(function(error) {
 
@@ -437,7 +351,6 @@ function demarrerScanner() {
     );
 
   });
-
 }
 
 
@@ -450,12 +363,8 @@ function traiterCode(code) {
   code =
     code.trim().toUpperCase();
 
-
   const maintenant =
     Date.now();
-
-
-  // Évite les doubles détections immédiates
 
   if (
     code === dernierCode &&
@@ -463,22 +372,14 @@ function traiterCode(code) {
   ) {
 
     return;
-
   }
 
-
   dernierCode = code;
-
   dernierScan = maintenant;
 
 
-  // ==================================================
-  // VÉRIFICATION FORMAT
-  // ==================================================
-
   const formatValide =
     /^[A-Z]{3}-[0-9]{3}$/;
-
 
   if (!formatValide.test(code)) {
 
@@ -489,13 +390,11 @@ function traiterCode(code) {
     );
 
     return;
-
   }
 
 
   const prestation =
     document.getElementById("prestation").value;
-
 
   const action =
     document.getElementById("action").value;
@@ -522,48 +421,44 @@ function traiterCode(code) {
     );
 
     return;
-
   }
 
 
   // ==================================================
-  // ENREGISTREMENT
+  // ENVOYER LE SCAN
   // ==================================================
 
   afficherMessage(
     "⏳ " +
     code +
-    " — enregistrement..."
+    " — vérification..."
   );
 
 
-  const image =
-    new Image();
+  const callback =
+    "scanCallback_" +
+    Date.now();
 
 
-  image.onload = function() {
+  window[callback] =
+    function(reponse) {
 
-    traiterReponseServeur(
-      code,
-      action,
-      image
-    );
+      traiterReponseScan(
+        reponse,
+        code,
+        action
+      );
 
-  };
+      delete window[callback];
 
-
-  image.onerror = function() {
-
-    traiterReponseServeur(
-      code,
-      action,
-      image
-    );
-
-  };
+    };
 
 
-  image.src =
+  const script =
+    document.createElement("script");
+
+
+  script.src =
     APPS_SCRIPT_URL +
     "?action=scan" +
     "&prestation=" +
@@ -572,8 +467,24 @@ function traiterCode(code) {
     encodeURIComponent(code) +
     "&type=" +
     encodeURIComponent(action) +
+    "&callback=" +
+    callback +
     "&t=" +
     Date.now();
+
+
+  script.onerror = function() {
+
+    afficherMessage(
+      "❌ Erreur de communication avec Google Sheets."
+    );
+
+    delete window[callback];
+
+  };
+
+
+  document.body.appendChild(script);
 
 }
 
@@ -582,26 +493,58 @@ function traiterCode(code) {
 // RÉPONSE DU SERVEUR
 // ==================================================
 
-function traiterReponseServeur(
+function traiterReponseScan(
+  reponse,
   code,
-  action,
-  image
+  action
 ) {
 
-  // Le serveur peut répondre TROP.
-  // Avec Image, la réponse n'est pas lisible directement.
-  // On affiche donc le résultat normal ici.
-  
+  if (
+    typeof reponse === "string" &&
+    reponse.indexOf("TROP|") === 0
+  ) {
+
+    const morceaux =
+      reponse.split("|");
+
+    const quantitePrevue =
+      morceaux[1];
+
+    const quantiteScannee =
+      morceaux[2];
+
+
+    afficherMessage(
+      "⚠️ MATÉRIEL EN TROP ! " +
+      code +
+      " — " +
+      quantitePrevue +
+      " prévu(s), " +
+      quantiteScannee +
+      " déjà scanné(s)."
+    );
+
+    return;
+  }
+
+
+  if (reponse === "OK") {
+
+    afficherMessage(
+      "✅ " +
+      code +
+      " — " +
+      action +
+      " enregistré"
+    );
+
+    return;
+  }
+
+
   afficherMessage(
-    "✅ " +
-    code +
-    " — " +
-    action +
-    " enregistré"
+    "❌ Réponse inconnue du serveur."
   );
-
-
-  mettreAJourCompteur();
 
 }
 
@@ -617,7 +560,6 @@ function mettreAJourCompteur() {
   ) {
 
     return;
-
   }
 
 
@@ -637,7 +579,6 @@ function mettreAJourCompteur() {
     "📦 " +
     total +
     " élément(s) prévu(s)";
-
 }
 
 
@@ -649,7 +590,6 @@ function afficherMessage(message) {
 
   document.getElementById("message")
     .textContent = message;
-
 }
 
 
@@ -658,7 +598,6 @@ function afficherMessage(message) {
 // ==================================================
 
 chargerPrestations();
-
 
 </script>
 
