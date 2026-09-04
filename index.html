@@ -87,7 +87,7 @@
       background: white;
       border-radius: 12px;
       text-align: center;
-      font-size: 24px;
+      font-size: 22px;
       font-weight: bold;
     }
 
@@ -167,6 +167,8 @@ let dernierCode = "";
 
 let dernierScan = 0;
 
+let materielPrestation = [];
+
 
 // ==================================================
 // CHARGER LES PRESTATIONS
@@ -174,17 +176,13 @@ let dernierScan = 0;
 
 function chargerPrestations() {
 
-  const callback =
-    "prestationsCallback";
-
   const script =
     document.createElement("script");
 
   script.src =
     APPS_SCRIPT_URL +
     "?action=prestations" +
-    "&callback=" +
-    callback +
+    "&callback=prestationsCallback" +
     "&t=" +
     Date.now();
 
@@ -240,19 +238,66 @@ function prestationsCallback(prestations) {
   });
 
 
-  if (prestations.length > 0) {
+  afficherMessage(
+    "✅ Prêt à scanner"
+  );
+
+}
+
+
+// ==================================================
+// CHARGER LE MATÉRIEL DE LA PRESTATION
+// ==================================================
+
+function chargerMateriel(prestation) {
+
+  materielPrestation = [];
+
+
+  const script =
+    document.createElement("script");
+
+
+  script.src =
+    APPS_SCRIPT_URL +
+    "?action=materiel" +
+    "&prestation=" +
+    encodeURIComponent(prestation) +
+    "&callback=materielCallback" +
+    "&t=" +
+    Date.now();
+
+
+  script.onerror = function() {
 
     afficherMessage(
-      "✅ Prêt à scanner"
+      "❌ Impossible de charger le matériel prévu."
     );
 
-  } else {
+  };
 
-    afficherMessage(
-      "⚠️ Aucune prestation trouvée."
-    );
 
-  }
+  document.body.appendChild(script);
+
+}
+
+
+// ==================================================
+// RÉCEPTION DU MATÉRIEL
+// ==================================================
+
+function materielCallback(materiel) {
+
+  materielPrestation =
+    materiel || [];
+
+
+  afficherMessage(
+    "✅ Prestation chargée — prêt à scanner"
+  );
+
+
+  mettreAJourCompteur();
 
 }
 
@@ -269,9 +314,18 @@ function changerPrestation() {
 
   if (!prestation) {
 
+    materielPrestation = [];
+
+
     document.getElementById("compteur")
       .textContent =
       "Sélectionne une prestation";
+
+
+    afficherMessage(
+      "Choisis une prestation"
+    );
+
 
     return;
 
@@ -280,7 +334,10 @@ function changerPrestation() {
 
   document.getElementById("compteur")
     .textContent =
-    "📦 Prestation : " + prestation;
+    "⏳ Chargement du matériel...";
+
+
+  chargerMateriel(prestation);
 
 }
 
@@ -300,6 +357,21 @@ function demarrerScanner() {
     afficherMessage(
       "⚠️ Choisis d'abord une prestation."
     );
+
+    return;
+
+  }
+
+
+  if (
+    materielPrestation.length === 0
+  ) {
+
+    afficherMessage(
+      "⏳ Le matériel de la prestation n'est pas encore chargé."
+    );
+
+    chargerMateriel(prestation);
 
     return;
 
@@ -386,8 +458,8 @@ function traiterCode(code) {
     Date.now();
 
 
-  // Évite de scanner plusieurs fois
-  // le même QR instantanément
+  // Empêche le même QR d'être
+  // enregistré plusieurs fois instantanément
 
   if (
     code === dernierCode &&
@@ -429,10 +501,41 @@ function traiterCode(code) {
     document.getElementById("action").value;
 
 
+  // ==================================================
+  // VÉRIFIER SI LE MATÉRIEL EST PRÉVU
+  // ==================================================
+
+  const materiel =
+    materielPrestation.find(function(element) {
+
+      return element.code === code;
+
+    });
+
+
+  if (!materiel) {
+
+    afficherMessage(
+      "⚠️ " +
+      code +
+      " : cet élément n'est pas censé être préparé pour cette prestation."
+    );
+
+
+    // On ne l'enregistre PAS dans SCANS
+    return;
+
+  }
+
+
+  // ==================================================
+  // ENREGISTREMENT
+  // ==================================================
+
   afficherMessage(
-    "⏳ Enregistrement de " +
+    "⏳ " +
     code +
-    "..."
+    " — enregistrement..."
   );
 
 
@@ -450,6 +553,9 @@ function traiterCode(code) {
       " enregistré"
     );
 
+
+    mettreAJourCompteur();
+
   };
 
 
@@ -463,6 +569,9 @@ function traiterCode(code) {
       " enregistré"
     );
 
+
+    mettreAJourCompteur();
+
   };
 
 
@@ -475,6 +584,42 @@ function traiterCode(code) {
     encodeURIComponent(code) +
     "&type=" +
     encodeURIComponent(action);
+
+}
+
+
+// ==================================================
+// COMPTEUR
+// ==================================================
+
+function mettreAJourCompteur() {
+
+  if (
+    materielPrestation.length === 0
+  ) {
+
+    return;
+
+  }
+
+
+  let total = 0;
+
+
+  materielPrestation.forEach(function(element) {
+
+    total +=
+      Number(element.quantite) || 0;
+
+  });
+
+
+  document.getElementById("compteur")
+    .textContent =
+    "📦 " +
+    total +
+    " élément(s) prévu(s)";
+
 
 }
 
